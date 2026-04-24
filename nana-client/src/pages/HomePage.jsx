@@ -118,8 +118,8 @@ const HomePage = () => {
               SO MATCHA
             </h3>
             <p className="mt-3 text-sm leading-6 text-zinc-600">
-              Trying paster color combinations for small cafe business by: Carlo
-              Nana
+              Trying paster color combinations for small cafe business by:
+              Igilene Castillo
             </p>
             <Button className="mt-4" variant="primary">
               View More
