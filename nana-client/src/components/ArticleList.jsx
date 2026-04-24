@@ -3,34 +3,41 @@ import Button from "./Button";
 
 const ArticleList = ({ articles }) => {
   return (
-    <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+    <div className="grid gap-6 sm:grid-cols-2 xl:grid-cols-4">
       {articles.map((article, index) => (
         <article
           key={article.name}
-          className="rounded-3xl border-2 border-zinc-900 bg-zinc-100 p-4"
+          className="group rounded-3xl border border-zinc-200 bg-white p-4 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-xl"
         >
-          <div className="aspect-4/3 border-b-2 border-zinc-900">
+          {/* Image */}
+          <div className="aspect-[4/3] overflow-hidden rounded-2xl border border-zinc-200">
             <img
               src={article.image}
               alt={article.title}
-              className="w-full h-full object-cover"
+              className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
             />
           </div>
 
-          <p className="mt-4 text-[11px] font-semibold uppercase tracking-[0.24em] text-zinc-500">
+          {/* Meta */}
+          <p className="mt-4 text-[11px] font-semibold uppercase tracking-[0.24em] text-blue-600">
             Article {String(index + 1).padStart(2, "0")}
           </p>
 
-          <h3 className="mt-2 text-lg font-semibold text-zinc-900">
+          {/* Title */}
+          <h3 className="mt-2 text-lg font-semibold text-zinc-900 transition-colors group-hover:text-blue-700">
             {article.title}
           </h3>
 
-          <p className="mt-3 text-sm leading-6 text-zinc-600">
+          {/* Description */}
+          <p className="mt-3 text-sm leading-relaxed text-zinc-600">
             {article.content[0].substring(0, 150)}...
           </p>
 
+          {/* Button */}
           <Link to={`/articles/${article.name}`}>
-            <Button className="mt-4">Read More</Button>
+            <Button className="mt-5 w-full rounded-xl bg-blue-900 text-white transition hover:bg-blue-800">
+              Read More
+            </Button>
           </Link>
         </article>
       ))}
