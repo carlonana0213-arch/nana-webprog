@@ -1,7 +1,7 @@
-import skull from "./images/posts/colorsArticle.jpg";
-import typo from "./images/posts/typoArticle.jpg";
-import layout from "./images/posts/layout.jpg";
-import Hierarchy from "./images/posts/Hierarchy.jpg";
+import skull from "../assets/images/posts/colorsArticle.jpg";
+import typo from "../assets/images/posts/typoArticle.jpg";
+import layout from "../assets/images/posts/layout.jpg";
+import Hierarchy from "../assets/images/posts/Hierarchy.jpg";
 const articles = [
   {
     name: "color-theory-basics",

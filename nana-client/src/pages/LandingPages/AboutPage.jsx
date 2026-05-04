@@ -3,7 +3,7 @@ import Banner from "../../assets/images/system/about-banner.png";
 import post1 from "../../assets/images/posts/post-1.jpg";
 import post2 from "../../assets/images/posts/post-2.jpg";
 import post3 from "../../assets/images/posts/post-3.jpg";
-import articles from "../../assets/article-content.js";
+import articles from "../../data/article-content.js";
 
 const AboutPage = () => {
   return (
