@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import PersonIcon from "@mui/icons-material/Person";
 import BadgeIcon from "@mui/icons-material/Badge";
 import WcIcon from "@mui/icons-material/Wc";
@@ -30,7 +30,12 @@ import Visibility from "@mui/icons-material/Visibility";
 import VisibilityOff from "@mui/icons-material/VisibilityOff";
 import { DataGrid } from "@mui/x-data-grid";
 
-import usersSeed from "../../data/users.json?raw";
+import {
+  fetchUsers,
+  createUser,
+  updateUser,
+  deleteUser,
+} from "../../services/UserService";
 
 const roles = ["admin", "editor", "viewer"];
 const genders = ["male", "female", "other"];
@@ -52,48 +57,12 @@ const blankForm = {
 const labelize = (value) =>
   value ? `${value.charAt(0).toUpperCase()}${value.slice(1)}` : "";
 
-const loadUsers = () => {
-  try {
-    return {
-      users: JSON.parse(usersSeed).map((user, index) => ({
-        id: Number(user.id) || index + 1,
-        firstName: String(user.firstName ?? "").trim(),
-        lastName: String(user.lastName ?? "").trim(),
-        age: String(user.age ?? "").trim(),
-        gender: String(user.gender ?? "")
-          .trim()
-          .toLowerCase(),
-        contactNumber: String(user.contactNumber ?? "").trim(),
-        email: String(user.email ?? "")
-          .trim()
-          .toLowerCase(),
-        role: roles.includes(String(user.role ?? "").toLowerCase())
-          ? String(user.role).toLowerCase()
-          : "editor",
-        username: String(user.username ?? "")
-          .trim()
-          .toLowerCase(),
-        password: String(user.password ?? ""),
-        address: String(user.address ?? "").trim(),
-        isActive: typeof user.isActive === "boolean" ? user.isActive : true,
-      })),
-      error: "",
-    };
-  } catch {
-    return {
-      users: [],
-      error: "Unable to read users.json",
-    };
-  }
-};
-
-const seed = loadUsers();
-
 const UsersPage = () => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
 
-  const [users, setUsers] = useState(seed.users);
+  const [users, setUsers] = useState([]);
+  const [loading, setLoading] = useState(false);
   const [modal, setModal] = useState({ open: false, id: null });
   const [form, setForm] = useState(blankForm);
   const [errors, setErrors] = useState({});
@@ -109,9 +78,24 @@ const UsersPage = () => {
     setForm({ ...blankForm });
     setErrors({});
   };
+  const loadUsers = async () => {
+    try {
+      setLoading(true);
 
+      const { data } = await fetchUsers();
+
+      setUsers(data.users || []);
+    } catch (error) {
+      console.error("Error loading users:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+  useEffect(() => {
+    loadUsers();
+  }, []);
   const openModal = (user) => {
-    setModal({ open: true, id: user?.id ?? null });
+    setModal({ open: true, id: user?._id ?? null });
     setForm(user ? { ...blankForm, ...user } : { ...blankForm });
     setErrors({});
   };
@@ -142,7 +126,7 @@ const UsersPage = () => {
     if (!form.email.includes("@")) err.email = "Invalid email";
 
     // Password
-    if (form.password.length < 8) {
+    if (!modal.id && form.password.length < 8) {
       err.password = "Password must be at least 8 characters";
     }
 
@@ -164,33 +148,59 @@ const UsersPage = () => {
     return err;
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
     const err = validate();
+
     if (Object.keys(err).length) {
       setErrors(err);
       return;
     }
 
-    const newUser = {
-      ...form,
-      id: modal.id ?? users.length + 1,
-    };
+    try {
+      if (modal.id) {
+        // EDIT USER
 
-    setUsers((prev) =>
-      modal.id
-        ? prev.map((u) => (u.id === modal.id ? newUser : u))
-        : [...prev, newUser],
-    );
+        const updatedUser = { ...form };
 
-    closeModal();
+        // Prevent empty password overwrite
+        if (!updatedUser.password) {
+          delete updatedUser.password;
+        }
+
+        await updateUser(modal.id, updatedUser);
+      } else {
+        // CREATE USER
+        await createUser(form);
+      }
+
+      await loadUsers();
+
+      closeModal();
+    } catch (error) {
+      console.error("Error saving user:", error);
+    }
   };
+  const handleDelete = async (id) => {
+    try {
+      await deleteUser(id);
 
-  const toggleStatus = (id) => {
-    setUsers((prev) =>
-      prev.map((u) => (u.id === id ? { ...u, isActive: !u.isActive } : u)),
-    );
+      loadUsers();
+    } catch (error) {
+      console.error(error);
+    }
+  };
+  const toggleStatus = async (id, currentStatus) => {
+    try {
+      await updateUser(id, {
+        isActive: !currentStatus,
+      });
+
+      loadUsers();
+    } catch (error) {
+      console.error(error);
+    }
   };
 
   // 🔍 FILTER LOGIC
@@ -213,7 +223,11 @@ const UsersPage = () => {
   });
 
   const columns = [
-    { field: "id", headerName: "ID", width: 80 },
+    {
+      field: "_id",
+      headerName: "ID",
+      width: 220,
+    },
     {
       field: "fullName",
       headerName: "Full Name",
@@ -251,7 +265,7 @@ const UsersPage = () => {
           <Button
             size="small"
             color="warning"
-            onClick={() => toggleStatus(row.id)}
+            onClick={() => toggleStatus(row._id, row.isActive)}
           >
             {row.isActive ? "Disable" : "Activate"}
           </Button>
@@ -379,12 +393,11 @@ const UsersPage = () => {
         </Button>
       </Stack>
 
-      {seed.error && <Alert severity="error">{seed.error}</Alert>}
-
       {/* TABLE */}
       <Paper sx={{ p: 2 }}>
         <DataGrid
           rows={filteredUsers}
+          getRowId={(row) => row._id}
           columns={columns}
           autoHeight
           pageSizeOptions={[5, 10]}

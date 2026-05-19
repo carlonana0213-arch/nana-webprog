@@ -1,11 +1,30 @@
 import { useParams } from "react-router-dom";
 import Button from "../../components/Button";
-import articles from "../../data/article-content.js";
+import { useEffect, useState } from "react";
+import { fetchArticle } from "../../services/ArticleService";
 
 function ArticlePage() {
   const { name } = useParams();
-  const article = articles.find((article) => article.name === name);
+  const [article, setArticle] = useState(null);
+  const [loading, setLoading] = useState(true);
+  useEffect(() => {
+    const loadArticle = async () => {
+      try {
+        const { data } = await fetchArticle(name);
 
+        setArticle(data);
+      } catch (error) {
+        console.error(error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadArticle();
+  }, [name]);
+  if (loading) {
+    return <div className="p-10 text-center">Loading article...</div>;
+  }
   if (!article) {
     return (
       <div className="flex w-full flex-col gap-6">

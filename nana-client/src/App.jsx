@@ -1,5 +1,5 @@
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
-
+import ProtectedRoute from "./components/ProtectedRoute";
 // HomePages
 import Layout from "./layouts/Layout";
 import ArticlePage from "./pages/LandingPages/ArticlePage";
@@ -17,6 +17,7 @@ import DashLayout from "./layouts/Dashlayout";
 import DashboardPage from "./pages/DashboardPages/DashboardPage";
 import UsersPage from "./pages/DashboardPages/UsersPage";
 import ReportsPage from "./pages/DashboardPages/ReportsPage";
+import DashArticles from "./pages/DashboardPages/DashArticleListPage";
 
 import NotFoundPage from "./pages/NotFoundPage";
 
@@ -61,7 +62,11 @@ const routes = [
   },
   {
     path: "dashboard/",
-    element: <DashLayout />,
+    element: (
+      <ProtectedRoute allowedRoles={["admin"]}>
+        <DashLayout />
+      </ProtectedRoute>
+    ),
     errorElement: <NotFoundPage />,
     children: [
       {
@@ -75,6 +80,10 @@ const routes = [
       {
         path: "users",
         element: <UsersPage />,
+      },
+      {
+        path: "articles",
+        element: <DashArticles />,
       },
     ],
   },

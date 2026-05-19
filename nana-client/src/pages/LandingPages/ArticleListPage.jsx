@@ -1,8 +1,29 @@
 import Button from "../../components/Button";
 import ArticleList from "../../components/ArticleList";
-import articles from "../../data/article-content";
+import { useEffect, useState } from "react";
+import { fetchArticles } from "../../services/ArticleService";
 
 const ArticleListPage = () => {
+  const [articles, setArticles] = useState([]);
+  const [loading, setLoading] = useState(true);
+  useEffect(() => {
+    const loadArticles = async () => {
+      try {
+        const { data } = await fetchArticles();
+
+        setArticles(data.articles || []);
+      } catch (error) {
+        console.error(error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadArticles();
+  }, []);
+  if (loading) {
+    return <div className="p-10 text-center">Loading articles...</div>;
+  }
   return (
     <div className="flex w-full flex-col gap-8">
       <section className="border-y border-zinc-200 bg-blue-950 px-4 py-8 sm:px-6 lg:px-8">
